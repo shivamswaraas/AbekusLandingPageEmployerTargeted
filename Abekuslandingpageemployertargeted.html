@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abekus | The Truth Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;700;800&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        /* === CORE SYSTEM & VARIABLES === */
+        :root {
+            --bg-obsidian: #0F172A;
+            --bg-slate: #1E293B;
+            --bleed-dark: #2A0808; 
+            --accent-cobalt: #06B6D4;
+            --accent-cobalt-hover: #0891B2;
+            --verify-green: #10B981;
+            --warning-yellow: #F59E0B;
+            --liability-red: #EF4444;
+            --text-light: #F8FAFC;
+            --text-muted: #94A3B8;
+            --border-slate: #334155;
+            
+            --font-head: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-body);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-obsidian);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 {
+            font-family: var(--font-head);
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        .text-cobalt { color: var(--accent-cobalt); }
+        .text-mono { font-family: var(--font-mono); }
+        .text-center { text-align: center; }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .section {
+            padding: 120px 0;
+        }
+
+        /* === HERO SECTION === */
+        .hero {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 35% 65%;
+            align-items: center;
+            gap: 60px;
+            padding-top: 80px;
+            border-bottom: 1px solid var(--border-slate);
+        }
+
+        .hero-copy { padding-right: 20px; }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 4vw, 4rem);
+            margin-bottom: 24px;
+            color: #FFFFFF;
+        }
+
+        .hero p.subtitle {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .hero-grounding {
+            font-size: 0.85rem;
+            color: #64748B;
+            font-family: var(--font-mono);
+        }
+
+        /* === THE SANDBOX === */
+        .sandbox-container {
+            background: var(--bg-slate);
+            border: 1px solid var(--border-slate);
+            border-radius: 4px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+            position: relative;
+        }
+
+        .sandbox-header {
+            background: #0F172A;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-slate);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .sandbox-body {
+            padding: 32px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+
+        .input-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent-cobalt);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        textarea.jd-input {
+            width: 100%;
+            height: 100px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-slate);
+            color: var(--text-muted);
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            resize: none;
+            border-radius: 2px;
+        }
+
+        .drop-zone {
+            border: 1px dashed var(--border-slate);
+            background: rgba(15, 23, 42, 0.3);
+            padding: 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        .btn-sandbox {
+            background: var(--accent-cobalt);
+            color: var(--bg-obsidian);
+            border: none;
+            padding: 24px;
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-sandbox:hover { background: var(--accent-cobalt-hover); }
+
+        .btn-sandbox::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
+            opacity: 0;
+            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes ping {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            100% { transform: scale(1.05); opacity: 0; }
+        }
+
+        /* === TERMINAL PROCESSING & RESULTS === */
+        .terminal-processing {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-obsidian);
+            padding: 40px;
+            font-family: var(--font-mono);
+            z-index: 10;
+        }
+
+        .terminal-line { color: var(--accent-cobalt); margin-bottom: 12px; opacity: 0; }
+
+        .results-state {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-slate);
+            padding: 32px;
+            z-index: 20;
+            overflow-y: auto;
+        }
+
+        .candidate-row {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-slate);
+            padding: 20px;
+            margin-bottom: 16px;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 24px;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: slideUp 0.3s forwards;
+        }
+
+        .candidate-row:nth-child(2) { animation-delay: 0.1s; }
+        .candidate-row:nth-child(3) { animation-delay: 0.2s; }
+        .candidate-row:nth-child(4) { animation-delay: 0.3s; }
+
+        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+
+        .score-box {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            font-weight: 800;
+            padding: 12px 16px;
+            background: var(--bg-obsidian);
+            border-left: 4px solid;
+            width: 100px;
+            text-align: center;
+        }
+
+        .score-green { border-color: var(--verify-green); color: var(--verify-green); }
+        .score-yellow { border-color: var(--warning-yellow); color: var(--warning-yellow); }
+        .score-red { border-color: var(--liability-red); color: var(--liability-red); }
+
+        .candidate-meta h4 { font-family: var(--font-mono); font-size: 1rem; margin-bottom: 4px; }
+        .candidate-meta p { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* === PROOF CAROUSEL === */
+        .proof-bar {
+            background: #000;
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border-slate);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            font-family: var(--font-mono);
+        }
+
+        .proof-metrics {
+            display: flex;
+            gap: 32px;
+            padding-right: 32px;
+            border-right: 1px solid var(--border-slate);
+            white-space: nowrap;
+            z-index: 2;
+            background: #000;
+        }
+
+        .carousel-track {
+            display: flex;
+            gap: 60px;
+            padding-left: 60px;
+            animation: scroll-fast 20s linear infinite;
+        }
+
+        .company-node { color: rgba(255,255,255,0.3); font-weight: 700; font-size: 1.1rem; text-transform: uppercase; }
+
+        @keyframes scroll-fast {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* === THE BLEED SECTION === */
+        .bleed-section {
+            background-color: var(--bleed-dark);
+            border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .bleed-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .redacted-doc {
+            background: #FFFFFF;
+            padding: 40px;
+            color: #000;
+            font-family: 'Times New Roman', serif;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transform: rotate(-1deg);
+        }
+
+        .redact {
+            background: #000;
+            color: #000;
+            display: inline-block;
+            margin: 0 2px;
+            user-select: none;
+        }
+
+        /* === TRUTH ENGINE SECTION === */
+        /* Typewriter Animation Styles */
+        .typewriter-container {
+            font-size: 3.5rem;
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
+        }
+
+        .typewriter-text {
+            color: var(--text-muted);
+            border-right: 4px solid var(--accent-cobalt);
+            padding-right: 8px;
+            animation: cursor-blink 0.8s infinite;
+            white-space: nowrap;
+        }
+
+        @keyframes cursor-blink {
+            0%, 100% { border-color: transparent; }
+            50% { border-color: var(--accent-cobalt); }
+        }
+
+        .engine-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-top: 60px;
+        }
+
+        .engine-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--border-slate);
+            padding: 40px 32px;
+            transition: border-color 0.2s;
+        }
+
+        .engine-card:hover { border-color: var(--accent-cobalt); }
+        .engine-card h3 { font-size: 1.25rem; margin-bottom: 16px; color: #FFF; }
+        .engine-card p { color: var(--text-muted); font-size: 0.95rem; }
+
+        /* === SYSTEM QUERIES (FAQs) === */
+        .faq-section {
+            background: var(--bg-obsidian);
+            position: relative;
+            border-top: 1px solid var(--border-slate);
+        }
+
+        .faq-grid {
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .faq-node {
+            background: var(--bg-slate);
+            border: 1px solid var(--border-slate);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-node.active {
+            border-color: var(--accent-cobalt);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.1);
+        }
+
+        .faq-question {
+            padding: 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            color: var(--text-light);
+            background: transparent;
+            transition: background 0.2s;
+        }
+
+        .faq-question::before {
+            content: '>';
+            color: var(--accent-cobalt);
+            margin-right: 16px;
+            font-weight: bold;
+        }
+
+        .faq-node:hover .faq-question { background: rgba(255, 255, 255, 0.02); }
+
+        .faq-toggle {
+            color: var(--text-muted);
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .faq-node.active .faq-toggle {
+            transform: rotate(45deg);
+            color: var(--accent-cobalt);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0, 1, 0, 1);
+            background: rgba(15, 23, 42, 0.5);
+            border-left: 2px solid var(--accent-cobalt);
+        }
+
+        .faq-node.active .faq-answer {
+            max-height: 400px;
+        }
+
+        .faq-answer-content {
+            padding: 0 24px 24px 44px;
+            color: var(--text-muted);
+            font-size: 1rem;
+            position: relative;
+        }
+
+        .faq-answer-content strong { color: var(--accent-cobalt); }
+
+        .faq-node.active .faq-answer-content::before {
+            content: '↳';
+            position: absolute;
+            left: 20px;
+            top: -4px;
+            color: var(--accent-cobalt);
+            font-family: var(--font-mono);
+        }
+
+        /* === FINAL CTA === */
+        .cta-section {
+            text-align: center;
+            background: radial-gradient(circle at center, var(--bg-slate) 0%, var(--bg-obsidian) 100%);
+            border-top: 1px solid var(--border-slate);
+        }
+
+        .btn-primary {
+            display: inline-block;
+            background: var(--text-light);
+            color: var(--bg-obsidian);
+            font-family: var(--font-head);
+            font-weight: 900;
+            font-size: 1.25rem;
+            padding: 20px 48px;
+            text-decoration: none;
+            margin-top: 40px;
+            transition: transform 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            background: var(--accent-cobalt);
+            color: #FFF;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero { grid-template-columns: 1fr; padding-top: 120px; }
+            .bleed-grid, .engine-grid { grid-template-columns: 1fr; gap: 40px; }
+            .typewriter-container { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="hero container">
+        <div class="hero-copy">
+            <h1>You Are Interviewing the Wrong Candidates 70% of the Time.</h1>
+            <p class="subtitle">Standard ATS software just reads keywords. We verify them. Stop relying on faked PDFs and start cross-referencing applicants against actual, game-based performance data.</p>
+            <p class="hero-grounding">*Based on internal cross-analysis of 100,000+ candidate assessments.</p>
+        </div>
+
+        <div class="sandbox-container">
+            <div class="sandbox-header">
+                <span>SYSTEM: ABEKUS_ENGINE_V2</span>
+                <span style="color: var(--verify-green);">STATUS: READY</span>
+            </div>
+            
+            <div class="sandbox-body" id="state-input">
+                <div class="input-group">
+                    <span class="input-label">Job Description Criteria</span>
+                    <textarea class="jd-input" readonly>Role: Senior Content Strategist
+Req: 7+ Years Exp, Tech/B2B writing, SEO mapping, Content Funnel Architecture.
+Must possess high-level strategic logic.</textarea>
+                </div>
+                <div class="input-group">
+                    <span class="input-label">Candidate Pool</span>
+                    <div class="drop-zone">Awaiting batch upload (PDF/DOCX)</div>
+                </div>
+                <button class="btn-sandbox" onclick="runSimulation()">Run Scan With Sample Data</button>
+            </div>
+
+            <div class="terminal-processing" id="state-processing">
+                <div class="terminal-line" id="term-1">[INIT] Compiling Job Description Parameters...</div>
+                <div class="terminal-line" id="term-2">[SCAN] Parsing Resumes for Keyword Matches...</div>
+                <div class="terminal-line" id="term-3">[VERIFY] Cross-Referencing Abekus Behavioral Data...</div>
+                <div class="terminal-line" id="term-4" style="color: var(--verify-green);">[COMPLETE] Generating Truth Ranking...</div>
+            </div>
+
+            <div class="results-state" id="state-results">
+                <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); margin-bottom: 24px;">*Verified in real-time against actual candidate performance data.</div>
+                
+                <div class="candidate-row">
+                    <div class="score-box score-green"><span class="scramble-num" data-target="94">00</span>%</div>
+                    <div class="candidate-meta">
+                        <h4>Candidate A</h4>
+                        <p style="color: var(--verify-green);">Abekus Verified: Strategic logic & execution confirmed.</p>
+                    </div>
+                </div>
+
+                <div class="candidate-row">
+                    <div class="score-box score-yellow"><span class="scramble-num" data-target="71">00</span>%</div>
+                    <div class="candidate-meta">
+                        <h4>Candidate B</h4>
+                        <p style="color: var(--warning-yellow);">Warning: Claims "Senior" but lacks framework experience.</p>
+                    </div>
+                </div>
+
+                <div class="candidate-row">
+                    <div class="score-box score-red"><span class="scramble-num" data-target="22">00</span>%</div>
+                    <div class="candidate-meta">
+                        <h4>Candidate C</h4>
+                        <p style="color: var(--liability-red);">Liability: Failed Abekus core competency test.</p>
+                    </div>
+                </div>
+
+                <button class="btn-sandbox" style="width: 100%; padding: 16px; margin-top: 16px; font-size: 0.9rem;" onclick="resetSimulation()">Reset Terminal</button>
+            </div>
+        </div>
+    </header>
+
+    <section class="proof-bar">
+        <div class="container" style="display: flex; align-items: center; padding: 0;">
+            <div class="proof-metrics">
+                <div><span style="color: var(--verify-green);">●</span> 14,204 HRS SAVED</div>
+                <div class="text-cobalt">99.2% MATCH ACCURACY</div>
+            </div>
+            <div style="overflow: hidden; flex-grow: 1;">
+                <div class="carousel-track">
+                    <span class="company-node">Google</span>
+                    <span class="company-node">Pipeline Velocity</span>
+                    <span class="company-node">Meta</span>
+                    <span class="company-node">Netflix</span>
+                    <span class="company-node">Meragi Events</span>
+                    <span class="company-node">Microsoft</span>
+                    <span class="company-node">Google</span>
+                    <span class="company-node">Pipeline Velocity</span>
+                    <span class="company-node">Meta</span>
+                    <span class="company-node">Netflix</span>
+                    <span class="company-node">Meragi Events</span>
+                    <span class="company-node">Microsoft</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section bleed-section">
+        <div class="container bleed-grid">
+            <div>
+                <h2 style="font-size: 3rem; margin-bottom: 24px;">The Hidden Cost of the "Keyword" Illusion.</h2>
+                <p style="font-size: 1.125rem; color: #CBD5E1; margin-bottom: 24px;">Your hiring team is bleeding dozens of hours every week reading resumes that should have been filtered out on day one.</p>
+                <ul style="list-style: none; display: flex; flex-direction: column; gap: 16px; font-size: 1rem; color: #94A3B8;">
+                    <li><strong style="color: #FFF;">The Lie:</strong> They look like a "Senior Executive" on paper.</li>
+                    <li><strong style="color: #FFF;">The Reality:</strong> You spend 3 hours interviewing them, only to realize they can't pass a basic competency test.</li>
+                    <li><strong style="color: var(--liability-red);">The Cost:</strong> $4,000+ in wasted team and recruiter time. Per bad candidate.</li>
+                </ul>
+                <p style="margin-top: 32px; font-weight: 600; font-size: 1.1rem; color: #FFF;">Stop paying your senior talent to act as human spam filters. Operate like a top 1% hiring team.</p>
+            </div>
+            
+            <div class="redacted-doc">
+                <h3 style="font-family: Arial, sans-serif; font-size: 24px; text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">JOHN DOE</h3>
+                <p><strong>SUMMARY:</strong> <span class="redact">Highly motivated and detail-oriented</span> professional with <span class="redact">extensive synergy</span> in <span class="redact">cross-functional leadership</span>. Proven track record of <span class="redact">thinking outside the box</span> to deliver <span class="redact">impactful solutions</span>.</p>
+                <br>
+                <p><strong>EXPERIENCE:</strong></p>
+                <p>Senior Strategist | <span class="redact">TechCorp Solutions</span></p>
+                <p>• <span class="redact">Spearheaded dynamic initiatives</span> that drove <span class="redact">unprecedented growth</span>.</p>
+                <p>• Managed <span class="redact">a large team of diverse stakeholders</span> to ensure <span class="redact">seamless operational</span> success.</p>
+                <br>
+                <p style="color: var(--liability-red); font-family: var(--font-mono); font-weight: bold; font-size: 12px; text-align: right; margin-top: 20px;">[DATA_VERIFICATION_FAILED]</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            
+            <div class="typewriter-container">
+                <span class="typewriter-text" id="typewriter">Standard ATS Reads.</span>
+                <span class="text-cobalt" style="font-weight: 900;">Abekus Verifies.</span>
+            </div>
+            
+            <p class="text-center subtitle" style="max-width: 700px; margin: 0 auto 16px auto;">Anyone can copy-paste "Expert" onto a document. We are the only platform that proves it before you pick up the phone.</p>
+
+            <div class="engine-grid">
+                <div class="engine-card">
+                    <div style="color: var(--accent-cobalt); font-family: var(--font-mono); margin-bottom: 16px;">01. VERIFY</div>
+                    <h3>The Ultimate BS-Detector</h3>
+                    <p>Our AI doesn't just parse text; it cross-references resume claims against the candidate's actual performance on the Abekus game-based testing platform.</p>
+                </div>
+                <div class="engine-card">
+                    <div style="color: var(--accent-cobalt); font-family: var(--font-mono); margin-bottom: 16px;">02. GRADE</div>
+                    <h3>Tri-Lateral Scoring</h3>
+                    <p>Every resume is mercilessly graded on three dimensions: Verified Experience, Proven Technical/Soft Skills, and an overall AI-backed fit percentile.</p>
+                </div>
+                <div class="engine-card">
+                    <div style="color: var(--accent-cobalt); font-family: var(--font-mono); margin-bottom: 16px;">03. COMMAND</div>
+                    <h3>Surgical Filtering</h3>
+                    <p>Upload 10 resumes or 10,000. Filter your talent pool by verified skill levels and export your shortlist in seconds. No volume limits.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section faq-section">
+        <div class="container">
+            <h2 class="text-center" style="font-size: 2.5rem; margin-bottom: 16px;">System Queries: FAQs</h2>
+            
+            <div class="faq-grid">
+                
+                <div class="faq-node" onclick="toggleFaq(this)">
+                    <div class="faq-question">
+                        <span>EXECUTE: Can this actually catch fake experience and inflated skills?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <strong>[OUTPUT]:</strong> Yes. By combining deep semantic AI parsing with our proprietary Abekus assessment data, we flag exactly where a candidate's claims don't match their proven abilities. 
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-node" onclick="toggleFaq(this)">
+                    <div class="faq-question">
+                        <span>EXECUTE: Will Abekus replace my human recruiting team?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <strong>[OUTPUT]:</strong> Zero risk. Abekus is a weapon for recruiters, not a replacement. It automates the soul-crushing busywork of screening so your team can spend 100% of their time closing pre-verified, elite talent.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-node" onclick="toggleFaq(this)">
+                    <div class="faq-question">
+                        <span>EXECUTE: How does this integrate with our current hiring flow?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <strong>[OUTPUT]:</strong> Seamless integration confirmed. You can export heavily enriched, verified candidate profiles via CSV directly into any major ATS, or use Abekus as your primary Command Center for early-stage screening.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-node" onclick="toggleFaq(this)">
+                    <div class="faq-question">
+                        <span>EXECUTE: What does it cost to scan 1,000 resumes?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <strong>[OUTPUT]:</strong> $0.00. The core AI resume analysis and volume uploading is completely free. We only charge for premium features like advanced algorithmic filtering and automated CSV pipelines.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="section cta-section">
+        <div class="container">
+            <h2 style="font-size: clamp(3rem, 5vw, 4.5rem); margin-bottom: 24px;">The Perfect Candidate is Buried in Your Inbox.</h2>
+            <p style="font-size: 1.25rem; color: var(--text-muted); max-width: 800px; margin: 0 auto;">Every day you use a standard ATS, you are letting elite talent slip through the cracks while interviewing professional liars. Stop guessing. Take absolute control of your hiring pipeline today.</p>
+            
+            <a href="#" class="btn-primary">See Who Is Actually Qualified</a>
+            <p class="text-mono" style="margin-top: 16px; color: var(--text-muted); font-size: 0.85rem;">Before you waste another interview slot.</p>
+        </div>
+    </section>
+
+    <script>
+        // --- 1. Sandbox Simulation Script ---
+        function runSimulation() {
+            const inputState = document.getElementById('state-input');
+            const processingState = document.getElementById('state-processing');
+            const resultsState = document.getElementById('state-results');
+            
+            inputState.style.display = 'none';
+            processingState.style.display = 'block';
+
+            const lines = [
+                document.getElementById('term-1'),
+                document.getElementById('term-2'),
+                document.getElementById('term-3'),
+                document.getElementById('term-4')
+            ];
+
+            // Slowed down to 500ms cadence
+            lines.forEach((line, index) => {
+                setTimeout(() => { line.style.opacity = '1'; }, index * 500); 
+            });
+
+            // Extended processing time to 2.5s total before showing results
+            setTimeout(() => {
+                processingState.style.display = 'none';
+                resultsState.style.display = 'block';
+                lines.forEach(line => line.style.opacity = '0');
+                scrambleNumbers();
+            }, 2500); 
+        }
+
+        function scrambleNumbers() {
+            const elements = document.querySelectorAll('.scramble-num');
+            elements.forEach(el => {
+                const target = parseInt(el.getAttribute('data-target'));
+                let currentStep = 0;
+                const timer = setInterval(() => {
+                    currentStep++;
+                    if (currentStep >= 16) { // ~500ms duration
+                        el.innerText = target;
+                        clearInterval(timer);
+                    } else {
+                        let tempNum = target + (Math.floor(Math.random() * 20) - 10);
+                        if(tempNum > 99) tempNum = 99;
+                        if(tempNum < 0) tempNum = 0;
+                        el.innerText = tempNum;
+                    }
+                }, 30);
+            });
+        }
+
+        function resetSimulation() {
+            document.getElementById('state-results').style.display = 'none';
+            document.getElementById('state-input').style.display = 'flex';
+        }
+
+        // --- 2. FAQ Toggle Script ---
+        function toggleFaq(element) {
+            const allNodes = document.querySelectorAll('.faq-node');
+            allNodes.forEach(node => {
+                if(node !== element) { node.classList.remove('active'); }
+            });
+            element.classList.toggle('active');
+        }
+
+        // --- 3. Typewriter Effect Script ---
+        document.addEventListener("DOMContentLoaded", function() {
+            const phrases = ["Standard ATS Skims.", "Standard ATS Guesses.", "Standard ATS Fails.", "Standard ATS Reads."];
+            const typeSpan = document.getElementById("typewriter");
+            let phraseIndex = 0;
+            let letterIndex = 0;
+            let currentPhrase = "";
+            let isDeleting = false;
+            let typeSpeed = 100;
+
+            function typeLoop() {
+                if(phraseIndex === phrases.length) { phraseIndex = 0; } // Loop infinitely
+                currentPhrase = phrases[phraseIndex];
+
+                if(isDeleting) {
+                    typeSpan.textContent = currentPhrase.substring(0, letterIndex - 1);
+                    letterIndex--;
+                    typeSpeed = 50; // Delete faster
+                } else {
+                    typeSpan.textContent = currentPhrase.substring(0, letterIndex + 1);
+                    letterIndex++;
+                    typeSpeed = 100; // Type normal
+                }
+
+                if(!isDeleting && letterIndex === currentPhrase.length) {
+                    isDeleting = true;
+                    typeSpeed = 1500; // Pause at end of word
+                } else if(isDeleting && letterIndex === 0) {
+                    isDeleting = false;
+                    phraseIndex++;
+                    typeSpeed = 500; // Pause before new word
+                }
+
+                setTimeout(typeLoop, typeSpeed);
+            }
+            
+            // Start the loop after a short initial delay
+            setTimeout(typeLoop, 1000);
+        });
+    </script>
+</body>
+</html>
